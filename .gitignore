@@ -1,0 +1,6 @@
+*.iml
+target
+.idea
+
+### Checkstyle ###
+configuration_1_3.dtd
