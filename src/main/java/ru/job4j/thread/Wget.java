@@ -28,21 +28,28 @@ public class Wget implements Runnable {
 
         file = getUniqueFile(file);
 
+        long totalBytesRead = 0;
+        long startTime = System.currentTimeMillis();
+
         try (var input = new URL(url).openStream();
              var output = new FileOutputStream(file)) {
             System.out.println("Open connection: " + (System.currentTimeMillis() - startAt) + " ms");
             var dataBuffer = new byte[1024];
             int bytesRead;
             while ((bytesRead = input.read(dataBuffer, 0, dataBuffer.length)) != -1) {
-                var downloadAt = System.nanoTime();
                 output.write(dataBuffer, 0, bytesRead);
-                long duration = System.nanoTime() - downloadAt;
-                long expectedDuration = (bytesRead * 1000L) / speed;
-                long actualDuration = duration / 1_000_000;
-                if (actualDuration < expectedDuration) {
-                    long sleepTime = expectedDuration - actualDuration;
-                    Thread.sleep(sleepTime);
-                    System.out.println("Была остановка на " + sleepTime + " мс");
+                totalBytesRead += bytesRead;
+
+                if (totalBytesRead >= speed) {
+                    long elapsedTime = System.currentTimeMillis() - startTime;
+                    if (elapsedTime < 1000) {
+                        long sleepTime = 1000 - elapsedTime;
+                        Thread.sleep(sleepTime);
+                        System.out.println("Была остановка на " + sleepTime + " мс");
+                    }
+
+                    totalBytesRead = 0;
+                    startTime = System.currentTimeMillis();
                 }
             }
         } catch (IOException e) {
