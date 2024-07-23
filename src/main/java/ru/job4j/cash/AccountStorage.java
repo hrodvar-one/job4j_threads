@@ -12,21 +12,11 @@ public class AccountStorage {
     private final HashMap<Integer, Account> accounts = new HashMap<>();
 
     public synchronized boolean add(Account account) {
-        boolean result = false;
-        if (!accounts.containsKey(account.id())) {
-            accounts.put(account.id(), account);
-            result = true;
-        }
-        return result;
+        return accounts.putIfAbsent(account.id(), account) == null;
     }
 
     public synchronized boolean update(Account account) {
-        boolean result = false;
-        if (accounts.containsKey(account.id())) {
-            accounts.replace(account.id(), account);
-            result = true;
-        }
-        return result;
+        return accounts.replace(account.id(), account) != null;
     }
 
     public synchronized void delete(int id) {
@@ -39,17 +29,22 @@ public class AccountStorage {
 
     public synchronized boolean transfer(int fromId, int toId, int amount) {
         boolean result = false;
-        if (accounts.containsKey(fromId) && accounts.containsKey(toId)) {
-            Account from = accounts.get(fromId);
-            Account to = accounts.get(toId);
+        Optional<Account> fromOpt = getById(fromId);
+        Optional<Account> toOpt = getById(toId);
+
+        if (fromOpt.isPresent() && toOpt.isPresent()) {
+            Account from = fromOpt.get();
+            Account to = toOpt.get();
+
             if (from.amount() >= amount) {
                 Account updatedFrom = new Account(from.id(), from.amount() - amount);
                 Account updatedTo = new Account(to.id(), to.amount() + amount);
-                accounts.put(fromId, updatedFrom);
-                accounts.put(toId, updatedTo);
+                accounts.replace(fromId, updatedFrom);
+                accounts.replace(toId, updatedTo);
                 result = true;
             }
         }
+
         return result;
     }
 }
