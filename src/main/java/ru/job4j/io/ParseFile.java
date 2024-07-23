@@ -13,15 +13,15 @@ public class ParseFile {
     }
 
     public String getContent(Predicate<Integer> filter) throws IOException {
-        FileInputStream input = new FileInputStream(file);
         StringBuilder output = new StringBuilder();
-        int data;
-        while ((data = input.read()) > 0) {
-            if (filter.test(data)) {
-                output.append((char) data);
+        try (FileInputStream input = new FileInputStream(file)) {
+            int data;
+            while ((data = input.read()) > 0) {
+                if (filter.test(data)) {
+                    output.append((char) data);
+                }
             }
         }
-        input.close();
         return output.toString();
     }
 
