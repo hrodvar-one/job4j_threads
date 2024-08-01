@@ -12,6 +12,9 @@ public class ParallelSearch<T> extends RecursiveTask<Integer> {
     private final int end;
 
     public ParallelSearch(T[] array, T target, int start, int end) {
+        if (array == null) {
+            throw new IllegalArgumentException("Array must not be null");
+        }
         this.array = array;
         this.target = target;
         this.start = start;
@@ -21,22 +24,29 @@ public class ParallelSearch<T> extends RecursiveTask<Integer> {
     @Override
     protected Integer compute() {
         if (end - start <= THRESHOLD) {
-            for (int i = start; i < end; i++) {
-                if (array[i].equals(target)) {
-                    return i;
-                }
-            }
-            return -1;
-        } else {
-            int mid = (start + end) / 2;
-            ParallelSearch<T> leftTask = new ParallelSearch<>(array, target, start, mid);
-            ParallelSearch<T> rightTask = new ParallelSearch<>(array, target, mid, end);
-            leftTask.fork();
-            int rightResult = rightTask.compute();
-            int leftResult = leftTask.join();
-
-            return (leftResult != -1) ? leftResult : rightResult;
+            return linearSearch();
         }
+
+        int mid = (start + end) / 2;
+        ParallelSearch<T> leftTask = new ParallelSearch<>(array, target, start, mid);
+        ParallelSearch<T> rightTask = new ParallelSearch<>(array, target, mid, end);
+        leftTask.fork();
+        int rightResult = rightTask.compute();
+        int leftResult = leftTask.join();
+
+        return (leftResult != -1) ? leftResult : rightResult;
+    }
+
+    private int linearSearch() {
+        for (int i = start; i < end; i++) {
+            if (array[i] == null && target == null) {
+                return i;
+            }
+            if (array[i] != null && array[i].equals(target)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public static <T> int parallelSearch(T[] array, T target) {
@@ -45,9 +55,16 @@ public class ParallelSearch<T> extends RecursiveTask<Integer> {
     }
 
     public static void main(String[] args) {
-        Integer[] array = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-        int target = 7;
+        Integer[] array = {1, 2, 3, null, 5, 6, 7, 8, 9, 10};
+        Integer target = null;
         int index = parallelSearch(array, target);
         System.out.println("Index of " + target + ": " + index);
+
+        Integer[] anotherArray = null;
+        try {
+            parallelSearch(anotherArray, 1);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 }
