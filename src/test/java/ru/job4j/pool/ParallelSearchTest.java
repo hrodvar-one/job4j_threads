@@ -63,6 +63,6 @@ class ParallelSearchTest {
     public void testNullArray() {
         Integer[] array = null;
         int target = 1;
-        assertThrows(NullPointerException.class, () -> ParallelSearch.parallelSearch(array, target));
+        assertThrows(IllegalArgumentException.class, () -> ParallelSearch.parallelSearch(array, target));
     }
 }

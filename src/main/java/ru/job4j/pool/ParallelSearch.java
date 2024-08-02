@@ -39,10 +39,7 @@ public class ParallelSearch<T> extends RecursiveTask<Integer> {
 
     private int linearSearch() {
         for (int i = start; i < end; i++) {
-            if (array[i] == null && target == null) {
-                return i;
-            }
-            if (array[i] != null && array[i].equals(target)) {
+            if (array[i].equals(target)) {
                 return i;
             }
         }
@@ -50,6 +47,9 @@ public class ParallelSearch<T> extends RecursiveTask<Integer> {
     }
 
     public static <T> int parallelSearch(T[] array, T target) {
+        if (array == null) {
+            throw new IllegalArgumentException("Массив не должен быть null");
+        }
         ForkJoinPool forkJoinPool = new ForkJoinPool();
         return forkJoinPool.invoke(new ParallelSearch<>(array, target, 0, array.length));
     }
